@@ -3,10 +3,14 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   const body = await request.json();
 
-  const response = await fetch(`${process.env.AUTH_BASE_URL}/user/register`, {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(body)) {
+    formData.append(key, value as string);
+  }
+
+  const response = await fetch(`${process.env.API_BASE_URL}/user`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: formData,
   });
 
   if (!response.ok) {
