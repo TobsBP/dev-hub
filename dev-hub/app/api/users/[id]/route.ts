@@ -10,7 +10,7 @@ export async function GET(
     return NextResponse.json({ error: "API_BASE_URL não definida" }, { status: 500 });
   }
 
-  const response = await fetch(`${API_Base}/post/${params.id}`);
+  const response = await fetch(`${API_Base}/user/${params.id}`);
 
   if (!response.ok) {
     const text = await response.text();
@@ -30,11 +30,11 @@ export async function PATCH(
     return NextResponse.json({ error: "API_BASE_URL não definida" }, { status: 500 });
   }
 
-  const body = await request.json();
-  const response = await fetch(`${API_Base}/post/${params.id}`, {
+  // Também multipart/form-data — repassa direto
+  const formData = await request.formData();
+  const response = await fetch(`${API_Base}/user/${params.id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: formData,
   });
 
   if (!response.ok) {
@@ -55,7 +55,7 @@ export async function DELETE(
     return NextResponse.json({ error: "API_BASE_URL não definida" }, { status: 500 });
   }
 
-  const response = await fetch(`${API_Base}/post/${params.id}`, {
+  const response = await fetch(`${API_Base}/user/${params.id}`, {
     method: "DELETE",
   });
 
@@ -65,5 +65,5 @@ export async function DELETE(
     return NextResponse.json({ error: `API retornou ${response.status}` }, { status: response.status });
   }
 
-  return new NextResponse(null, { status: 200 }); // DELETE sem body
+  return new NextResponse(null, { status: 200 });
 }

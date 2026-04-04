@@ -7,7 +7,7 @@ export async function GET() {
     return NextResponse.json({ error: "API_BASE_URL não definida" }, { status: 500 });
   }
 
-  const response = await fetch(`${API_Base}/posts`);
+  const response = await fetch(`${API_Base}/users`);
 
   if (!response.ok) {
     const text = await response.text();
@@ -24,11 +24,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "API_BASE_URL não definida" }, { status: 500 });
   }
 
-  const body = await request.json();
-  const response = await fetch(`${API_Base}/posts`, {
+  // Repassa o FormData direto — não converte para JSON
+  const formData = await request.formData();
+  const response = await fetch(`${API_Base}/user`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: formData,
   });
 
   if (!response.ok) {
@@ -38,5 +38,5 @@ export async function POST(request: Request) {
   }
 
   const data = await response.json();
-  return NextResponse.json(data, { status: 201 }); // POST bem-sucedido → 201
+  return NextResponse.json(data, { status: 201 });
 }
