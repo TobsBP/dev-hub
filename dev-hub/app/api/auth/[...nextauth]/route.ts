@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -12,37 +13,36 @@ const handler = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // TODO: trocar pela rota correta quando souber
-        const response = await fetch(`${process.env.AUTH_BASE_URL}/user/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-          }),
-        });
-
+        const response = await fetch(`${process.env.API_BASE_URL}/users`);
         if (!response.ok) return null;
 
-        const { token } = await response.json();
+        const users = await response.json();
+        const user = users.find((u: { email: string }) => u.email === credentials.email);
+        if (!user) return null;
+
+        const valid = await bcrypt.compare(credentials.password, user.password_hash);
+        if (!valid) return null;
 
         return {
-          id: credentials.email,
-          email: credentials.email,
-          token,
+          id: user.id,
+          name: user.username,
+          email: user.email,
+          image: user.avatar_url,
         };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // Na primeira vez que loga, user vem preenchido
-      if (user) token.accessToken = (user as any).token;
+      if (user) {
+        token.id = user.id;
+      }
       return token;
     },
     async session({ session, token }) {
-      // Expõe o token na sessão pra usar nos requests
-      (session as any).accessToken = token.accessToken;
+      if (session.user) {
+        (session.user as any).id = token.id;
+      }
       return session;
     },
   },

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import SessionWrapper from "@/components/SessionWrapper";
 import "./globals.css";
 
-// Configuração das fontes padrões do Next.js 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -13,7 +13,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// METADDOS
 export const metadata: Metadata = {
   title: "DevHub",
   description: "Social Network for Developers by Developers",
@@ -29,7 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50`}
       >
-        {children}
+        <SessionWrapper>{children}</SessionWrapper>
       </body>
     </html>
   );

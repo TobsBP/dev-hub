@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 interface CreatePostFormProps {
@@ -7,9 +8,9 @@ interface CreatePostFormProps {
 }
 
 export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
+  const { data: session } = useSession();
   const [content, setContent] = useState("");
   const [type, setType] = useState("text");
-  const [userId, setUserId] = useState("00000000-0000-0000-0000-000000000000");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -29,7 +30,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, content, type }),
+        body: JSON.stringify({ user_id: (session?.user as any)?.id, content, type }),
       });
 
       if (!response.ok) {
@@ -76,15 +77,6 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
             <option value="question">Pergunta</option>
             <option value="image">Imagem</option>
           </select>
-
-          <input
-            type="text"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="User ID"
-            className="flex-1 bg-zinc-900 text-white border border-zinc-800 rounded-md p-2 text-sm focus:outline-none focus:border-blue-500"
-            disabled={loading}
-          />
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
