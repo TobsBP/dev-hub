@@ -11,6 +11,11 @@ interface Post {
   updated_at: string;
 }
 
+interface User {
+  username: string;
+  email: string;
+}
+
 const TYPE_LABELS: Record<string, string> = {
   text: "texto",
   code: "código",
@@ -27,11 +32,13 @@ function formatDate(dateStr: string) {
   });
 }
 
-function initials(userId: string) {
-  return userId.slice(0, 2).toUpperCase();
+function initials(user?: User) {
+  if (user?.username) return user.username[0].toUpperCase();
+  if (user?.email) return user.email[0].toUpperCase();
+  return "?";
 }
 
-export default function PostCard({ post }: { post: Post }) {
+export default function PostCard({ post, user }: { post: Post; user?: User }) {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(Math.floor(Math.random() * 20));
   const [showComments, setShowComments] = useState(false);
@@ -50,15 +57,15 @@ export default function PostCard({ post }: { post: Post }) {
   };
 
   return (
-    <article className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden mb-4">
+    <article className="w-full bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden mb-4">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
         <div className="w-9 h-9 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 text-sm font-medium shrink-0">
-          {initials(post.user_id)}
+          {initials(user)}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white truncate">
-            {post.user_id.slice(0, 8)}...
+            {user?.username ?? user?.email ?? post.user_id.slice(0, 8) + "..."}
           </p>
           <p className="text-xs text-zinc-500">{formatDate(post.created_at)}</p>
         </div>
@@ -109,7 +116,7 @@ export default function PostCard({ post }: { post: Post }) {
 
       {/* Comments (estático/local) */}
       {showComments && (
-        <div className="border-t border-zinc-800 px-4 py-3 space-y-3">
+        <div className="border-t border-zinc-800 px-4 py-3 space-y-3 w-full overflow-hidden">
           {comments.length === 0 && (
             <p className="text-xs text-zinc-600">Nenhum comentário ainda.</p>
           )}
@@ -125,7 +132,7 @@ export default function PostCard({ post }: { post: Post }) {
             </div>
           ))}
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex gap-2 pt-1 min-w-0">
             <input
               type="text"
               value={commentText}

@@ -13,8 +13,13 @@ export interface Post {
   updated_at: string;
 }
 
+export interface UserMap {
+  [id: string]: { username: string; email: string };
+}
+
 export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [users, setUsers] = useState<UserMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,15 +27,19 @@ export default function Feed() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/posts");
-      if (!res.ok) throw new Error("Erro ao buscar posts");
-      const data: Post[] = await res.json();
-      setPosts(
-        data.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-      );
+      const [postsRes, usersRes] = await Promise.all([
+        fetch("/api/posts"),
+        fetch("/api/users"),
+      ]);
+      if (!postsRes.ok) throw new Error("Erro ao buscar posts");
+      const data: Post[] = await postsRes.json();
+      setPosts(data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        const map: UserMap = {};
+        for (const u of usersData) map[u.id] = { username: u.username, email: u.email };
+        setUsers(map);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
@@ -59,20 +68,16 @@ export default function Feed() {
       {error && (
         <div className="mt-4 p-4 bg-red-950 border border-red-800 rounded-xl text-red-400 text-sm">
           {error} —{" "}
-          <button onClick={fetchPosts} className="underline">
-            tentar novamente
-          </button>
+          <button onClick={fetchPosts} className="underline">tentar novamente</button>
         </div>
       )}
 
       {!loading && !error && posts.length === 0 && (
-        <p className="text-zinc-500 text-sm text-center py-12">
-          Nenhum post ainda. Seja o primeiro!
-        </p>
+        <p className="text-zinc-500 text-sm text-center py-12">Nenhum post ainda. Seja o primeiro!</p>
       )}
 
       {!loading && !error && posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} user={users[post.user_id]} />
       ))}
     </div>
   );
