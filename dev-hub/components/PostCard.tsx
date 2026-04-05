@@ -57,6 +57,31 @@ export default function PostCard({ post, user, initialCommentCount = 0, users = 
   const [loadingComments, setLoadingComments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // --- BUSCAR ESTADO INICIAL DE LIKES ---
+  useEffect(() => {
+    const fetchLikes = async () => {
+      const userId = (session?.user as any)?.id;
+      try {
+        const res = await fetch(`/api/likes?type=post&id=${post.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setLikesCount(data.length);
+            if (userId) {
+              const hasLiked = data.some((like: any) => like.user_id === userId);
+              setLiked(hasLiked);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao carregar likes:", err);
+      }
+    };
+
+    fetchLikes();
+  }, [post.id, session]);
+
+  // --- BUSCAR COMENTÁRIOS ---
   useEffect(() => {
     if (!showComments) return;
     setLoadingComments(true);
@@ -66,9 +91,40 @@ export default function PostCard({ post, user, initialCommentCount = 0, users = 
       .finally(() => setLoadingComments(false));
   }, [showComments, post.id]);
 
-  const toggleLike = () => {
-    setLiked((v) => !v);
-    setLikesCount((c) => (liked ? c - 1 : c + 1));
+  // --- LOGICA DE CURTIR/DESCURTIR ---
+  const toggleLike = async () => {
+    const userId = (session?.user as any)?.id;
+    if (!userId) {
+      alert("Você precisa estar logado para curtir!");
+      return;
+    }
+
+    // Optimistic UI: Muda na tela antes de ir pro banco
+    const previousLiked = liked;
+    const previousCount = likesCount;
+
+    setLiked(!previousLiked);
+    setLikesCount(prev => previousLiked ? prev - 1 : prev + 1);
+
+    try {
+      const res = await fetch("/api/likes/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: userId,
+          targetId: post.id,
+          targetType: "post",
+          isLiked: previousLiked,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Erro na API");
+    } catch (error) {
+      // Reverte se der erro
+      setLiked(previousLiked);
+      setLikesCount(previousCount);
+      console.error("Erro ao curtir:", error);
+    }
   };
 
   const submitComment = async () => {
@@ -145,7 +201,7 @@ export default function PostCard({ post, user, initialCommentCount = 0, users = 
         </button>
       </div>
 
-      {/* Comments */}
+      {/* Comments Area... */}
       {showComments && (
         <div className="border-t border-zinc-800 px-4 py-3 space-y-3 w-full overflow-hidden">
           {loadingComments && <p className="text-xs text-zinc-600">Carregando...</p>}
