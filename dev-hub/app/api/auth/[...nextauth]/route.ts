@@ -13,7 +13,7 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         // TODO: trocar pela rota correta quando souber
-        const response = await fetch(`${process.env.API_BASE_URL}/auth/login`, {
+        const response = await fetch(`${process.env.AUTH_BASE_URL}/user/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -24,15 +24,12 @@ const handler = NextAuth({
 
         if (!response.ok) return null;
 
-        const { token, user } = await response.json();
+        const { token } = await response.json();
 
-        // Retorna o user com o token junto pra salvar na sessão
         return {
-          id: user.id,
-          name: user.username,
-          email: user.email,
-          image: user.avatar_url,
-          token, // <-- guarda o token
+          id: credentials.email,
+          email: credentials.email,
+          token,
         };
       },
     }),
