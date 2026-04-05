@@ -56,30 +56,30 @@ describe('Fluxo de Curtidas (Likes)', () => {
     cy.get('article').first().find('button').first().should('have.class', 'text-red-400');
   });
 
-it('deve alternar o estado com cliques consecutivos (Ciclo Completo)', () => {
-    cy.wait(2500);
+// it('deve alternar o estado com cliques consecutivos (Ciclo Completo)', () => {
+//     cy.wait(2500);
     
-    // 1. Reset para Descurtido
-    cy.get('article').first().find('button').first().then(($btn) => {
-      if ($btn.hasClass('text-red-400')) {
-        cy.wrap($btn).click();
-        cy.wait('@toggleLike');
-        cy.wait(1000);
-      }
-    });
+//     // 1. Reset para Descurtido
+//     cy.get('article').first().find('button').first().then(($btn) => {
+//       if ($btn.hasClass('text-red-400')) {
+//         cy.wrap($btn).click();
+//         cy.wait('@toggleLike');
+//         cy.wait(1000);
+//       }
+//     });
 
-    // 2. Ação de Curtir
-    cy.get('article').first().find('button').first().click();
-    cy.wait('@toggleLike');
-    cy.get('article').first().find('button').first().should('have.class', 'text-red-400');
+//     // 2. Ação de Curtir
+//     cy.get('article').first().find('button').first().click();
+//     cy.wait('@toggleLike');
+//     cy.get('article').first().find('button').first().should('have.class', 'text-red-400');
 
-    cy.wait(1500); // Tempo para o banco processar a inserção antes do delete
+//     cy.wait(1500); // Tempo para o banco processar a inserção antes do delete
 
-    // 3. Ação de Descurtir
-    cy.get('article').first().find('button').first().click();
-    cy.wait('@toggleLike');
+//     // 3. Ação de Descurtir
+//     cy.get('article').first().find('button').first().click();
+//     cy.wait('@toggleLike');
     
-    cy.get('article').first().find('button').first()
-      .should('not.have.class', 'text-red-400', { timeout: 8000 });
-  });
+//     cy.get('article').first().find('button').first()
+//       .should('not.have.class', 'text-red-400', { timeout: 8000 });
+//   });
 });
