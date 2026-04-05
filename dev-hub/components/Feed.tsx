@@ -17,9 +17,12 @@ export interface UserMap {
   [id: string]: { username: string; email: string };
 }
 
+export type CommentCountMap = { [postId: string]: number };
+
 export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [users, setUsers] = useState<UserMap>({});
+  const [commentCounts, setCommentCounts] = useState<CommentCountMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +36,27 @@ export default function Feed() {
       ]);
       if (!postsRes.ok) throw new Error("Erro ao buscar posts");
       const data: Post[] = await postsRes.json();
-      setPosts(data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      const sorted = data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setPosts(sorted);
+
       if (usersRes.ok) {
         const usersData = await usersRes.json();
         const map: UserMap = {};
         for (const u of usersData) map[u.id] = { username: u.username, email: u.email };
         setUsers(map);
       }
+
+      const counts = await Promise.all(
+        sorted.map((p) =>
+          fetch(`/api/comments/${p.id}`)
+            .then((r) => r.json())
+            .then((d) => ({ id: p.id, count: Array.isArray(d) ? d.length : 0 }))
+            .catch(() => ({ id: p.id, count: 0 }))
+        )
+      );
+      const countMap: CommentCountMap = {};
+      for (const { id, count } of counts) countMap[id] = count;
+      setCommentCounts(countMap);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
@@ -77,7 +94,7 @@ export default function Feed() {
       )}
 
       {!loading && !error && posts.map((post) => (
-        <PostCard key={post.id} post={post} user={users[post.user_id]} />
+        <PostCard key={post.id} post={post} user={users[post.user_id]} initialCommentCount={commentCounts[post.id] ?? 0} users={users} />
       ))}
     </div>
   );
