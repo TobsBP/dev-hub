@@ -11,8 +11,6 @@ export async function POST(request: Request) {
     const { userId, targetType, targetId, isLiked } = await request.json();
 
     if (isLiked) {
-      // REGRA: Se já está curtido (isLiked: true), o clique deve "Descurtir"
-      // URL do Back: DELETE /like/{userId}/{targetType}/{targetId}
       const response = await fetch(`${API_Base}/like/${userId}/${targetType}/${targetId}`, {
         method: "DELETE",
       });
