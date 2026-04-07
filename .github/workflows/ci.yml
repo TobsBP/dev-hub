@@ -11,7 +11,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: dev-hub
+        working-directory: dev-hub/dev-hub
 
     env:
       NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
