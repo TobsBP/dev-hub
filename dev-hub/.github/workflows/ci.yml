@@ -9,6 +9,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+    
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
