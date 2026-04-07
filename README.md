@@ -70,7 +70,7 @@ A aplicação estará disponível em `http://localhost:3000`.
 ## Testes
 
 O projeto utiliza **Cypress** para testes end-to-end.
-Obs: o cypress é muito rapido, logo alguns testes podem falhar a depender do desempenho da maquina utlizada
+Obs: o cypress é muito rapido, logo alguns testes podem falhar a depender do desempenho da maquina utlizada e também a depender da resposta da api.
 **Abrir a interface interativa do Cypress:**
 
 ```bash
