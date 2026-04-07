@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "cypress run",
     "test:report": "cypress run --spec cypress/e2e/post.cy.ts"
+    "test:ci": "cypress run --headless"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -27,6 +28,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "^7.0.1"
   }
 }

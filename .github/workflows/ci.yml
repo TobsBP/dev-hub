@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: dev-hub
+
+    env:
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
+      API_BASE_URL: ${{ secrets.API_BASE_URL }}
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build da aplicação
+        run: npm run build
+
+      - name: Rodar aplicação
+        run: npm start &
+
+      - name: Esperar servidor subir
+        run: npx wait-on http://localhost:3000
+
+      - name: Rodar testes Cypress
+        run: npx cypress run
