@@ -13,7 +13,6 @@ Uma rede social para desenvolvedores — compartilhe posts, snippets de código,
 - [Testes](#testes)
 - [Funcionalidades](#funcionalidades)
 - [Estrutura do Projeto](#estrutura-do-projeto)
-- [Contribuindo](#contribuindo)
 
 ---
 
