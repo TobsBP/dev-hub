@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "cypress run",
+    "test:report": "cypress run --spec cypress/e2e/post.cy.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
