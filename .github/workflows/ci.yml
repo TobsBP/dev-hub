@@ -28,6 +28,7 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+          cache-dependency-path: dev-hub/package-lock.json
 
       - name: Instalar dependências
         run: npm ci
