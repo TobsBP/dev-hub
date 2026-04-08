@@ -36,7 +36,7 @@ jobs:
         run: npm start > /tmp/server.log 2>&1 &
 
       - name: Esperar servidor subir
-        run: sleep 5 && npx wait-on http://127.0.0.1:3000/api/auth/providers --timeout 60000 --interval 2000 || (cat /tmp/server.log && exit 1)
+        run: sleep 5 && npx wait-on http-get://127.0.0.1:3000 --timeout 60000 --interval 2000 || (cat /tmp/server.log && exit 1)
 
       - name: Rodar testes Cypress
         run: npx cypress run
