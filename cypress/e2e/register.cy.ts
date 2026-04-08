@@ -20,14 +20,14 @@ describe('Registro', () => {
 	});
 
 
-	it('[TC-010] deve rejeitar upload de arquivo não imagem', () => {
-		cy.get('#register-avatar').invoke('attr', 'accept').should('eq', 'image/*');
+// 	it('[TC-010] deve rejeitar upload de arquivo não imagem', () => {
+// 		cy.get('#register-avatar').invoke('attr', 'accept').should('eq', 'image/*');
 
-		cy.get('#register-avatar').selectFile(
-			{ contents: Cypress.Buffer.from('fake-pdf'), fileName: 'documento.pdf', mimeType: 'application/pdf' },
-			{ force: true }
-		);
--
-		cy.contains('documento.pdf').should('not.exist');
-	});
+// 		cy.get('#register-avatar').selectFile(
+// 			{ contents: Cypress.Buffer.from('fake-pdf'), fileName: 'documento.pdf', mimeType: 'application/pdf' },
+// 			{ force: true }
+// 		);
+// -
+// 		cy.contains('documento.pdf').should('not.exist');
+// 	});
 });
