@@ -15,7 +15,7 @@ describe('Registro', () => {
 		cy.get('input[name="password"]').type('123');
 		cy.get('button[type="submit"]').click();
 
-		cy.get('p.text-red-500', { timeout: 10000 }).should('be.visible');
+		cy.get('p.text-red-500', { timeout: 20000 }).should('be.visible').and('contain.text', 'Email already in use');
 		cy.url().should('include', '/register');
 	});
 
