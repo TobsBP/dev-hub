@@ -27,6 +27,9 @@
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"cypress": "^15.13.0",
+		"mochawesome": "^7.1.4",
+		"mochawesome-merge": "^5.1.1",
+		"mochawesome-report-generator": "^6.3.2",
 		"tailwindcss": "^4",
 		"typescript": "^5",
 		"wait-on": "^7.0.1"
