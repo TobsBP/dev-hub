@@ -34,7 +34,11 @@ export default function Feed() {
 				const usersData = await usersRes.json();
 				const map: UserMap = {};
 				for (const u of usersData)
-					map[u.id] = { username: u.username, email: u.email };
+					map[u.id] = {
+						username: u.username,
+						email: u.email,
+						avatar_url: u.avatar_url,
+					};
 				setUsers(map);
 			}
 

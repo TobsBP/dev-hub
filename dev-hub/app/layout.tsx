@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import ConditionalNavBar from '@/components/ConditionalNavBar';
 import SessionWrapper from '@/components/SessionWrapper';
 import './globals.css';
 
@@ -28,7 +29,10 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50`}
 			>
-				<SessionWrapper>{children}</SessionWrapper>
+				<SessionWrapper>
+					<ConditionalNavBar />
+					{children}
+				</SessionWrapper>
 			</body>
 		</html>
 	);

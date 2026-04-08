@@ -1,12 +1,55 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 export default function NavBar() {
+	const [mounted, setMounted] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
+	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+	const [initials, setInitials] = useState('?');
+	const [typedText, setTypedText] = useState('');
+	const [doneTyping, setDoneTyping] = useState(false);
+	const { data: session } = useSession();
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	const FULL_TEXT = 'DevHub';
+
+	useEffect(() => {
+		let i = 0;
+		setTypedText('');
+		setDoneTyping(false);
+		const interval = setInterval(() => {
+			i++;
+			setTypedText(FULL_TEXT.slice(0, i));
+			if (i === FULL_TEXT.length) {
+				clearInterval(interval);
+				setDoneTyping(true);
+			}
+		}, 120);
+		return () => clearInterval(interval);
+	}, []);
+
+	useEffect(() => {
+		if (!session?.user?.id) return;
+		fetch(`/api/users/${session.user.id}`)
+			.then((r) => (r.ok ? r.json() : null))
+			.then((data) => {
+				if (!data) return;
+				setAvatarUrl(data.avatar_url ?? null);
+				setInitials(
+					(data.username?.[0] ?? session.user?.email?.[0] ?? '?').toUpperCase(),
+				);
+			})
+			.catch(() => {});
+	}, [session]);
 	const router = useRouter();
 
 	const handleSearch = (e: React.BaseSyntheticEvent) => {
@@ -24,7 +67,14 @@ export default function NavBar() {
 					<div className="shrink-0">
 						<Link href="/" className="flex items-center">
 							<span className="text-2xl font-bold tracking-tight text-white">
-								DevHub
+								{mounted ? (
+									<>
+										{typedText}
+										{!doneTyping && <span className="animate-pulse">|</span>}
+									</>
+								) : (
+									'DevHub'
+								)}
 							</span>
 						</Link>
 					</div>
@@ -61,11 +111,22 @@ export default function NavBar() {
 					{/* Ações (Perfil/Menu) */}
 					<div className="flex items-center space-x-4">
 						<div className="hidden md:block">
-							<Link
-								href="/perfil"
-								className="bg-white text-black px-4 py-2 rounded-md hover:bg-zinc-200 transition-colors font-semibold"
-							>
-								Perfil
+							<Link href="/perfil" className="block">
+								<div className="w-9 h-9 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 text-sm font-medium overflow-hidden ring-2 ring-transparent hover:ring-zinc-600 transition-all">
+									{mounted && avatarUrl ? (
+										<Image
+											src={avatarUrl}
+											alt="Avatar"
+											width={36}
+											height={36}
+											className="w-full h-full object-cover"
+										/>
+									) : mounted ? (
+										initials
+									) : (
+										'?'
+									)}
+								</div>
 							</Link>
 						</div>
 
@@ -121,11 +182,21 @@ export default function NavBar() {
 					</form>
 				</div>
 				<div className="flex flex-col px-4 space-y-2">
-					<Link
-						href="/perfil"
-						className="bg-white text-black text-center px-3 py-2 rounded-md font-semibold"
-					>
-						Perfil
+					<Link href="/perfil" className="flex items-center gap-3 py-2">
+						<div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 text-sm font-medium overflow-hidden shrink-0">
+							{avatarUrl ? (
+								<Image
+									src={avatarUrl}
+									alt="Avatar"
+									width={32}
+									height={32}
+									className="w-full h-full object-cover"
+								/>
+							) : (
+								initials
+							)}
+						</div>
+						<span className="text-white font-semibold">Perfil</span>
 					</Link>
 				</div>
 			</div>
