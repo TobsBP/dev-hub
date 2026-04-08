@@ -1,19 +1,20 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import { useRef, useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
+import { useCreatePost } from '@/hooks/useCreatePost';
 
 interface CreatePostFormProps {
 	onPostCreated?: () => void;
 }
 
 export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
-	const { data: session } = useSession();
+	const { user } = useAuth();
+	const { createPost, loading, error: createError } = useCreatePost();
 	const [content, setContent] = useState('');
 	const [type, setType] = useState('text');
 	const [image, setImage] = useState<File | null>(null);
 	const [preview, setPreview] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,11 +30,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 	function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0] ?? null;
 		setImage(file);
-		if (file) {
-			setPreview(URL.createObjectURL(file));
-		} else {
-			setPreview(null);
-		}
+		setPreview(file ? URL.createObjectURL(file) : null);
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -49,21 +46,18 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 			setError('Selecione uma imagem');
 			return;
 		}
+		if (!user?.id) {
+			setError('Você precisa estar logado');
+			return;
+		}
 
-		setLoading(true);
 		try {
-			const formData = new FormData();
-			formData.append('user_id', session?.user?.id ?? '');
-			formData.append('content', content.trim());
-			formData.append('type', type);
-			if (image) formData.append('image', image);
-
-			const response = await fetch('/api/posts', {
-				method: 'POST',
-				body: formData,
+			await createPost({
+				user_id: user.id,
+				content: content.trim(),
+				type,
+				image: image ?? undefined,
 			});
-
-			if (!response.ok) throw new Error('Erro ao criar post');
 
 			setSuccess(true);
 			setContent('');
@@ -74,12 +68,12 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 
 			setTimeout(() => setSuccess(false), 2000);
 			onPostCreated?.();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Erro desconhecido');
-		} finally {
-			setLoading(false);
+		} catch {
+			// error already set in hook
 		}
 	};
+
+	const displayError = error ?? createError;
 
 	return (
 		<form
@@ -170,7 +164,7 @@ export default function CreatePostForm({ onPostCreated }: CreatePostFormProps) {
 					</div>
 				)}
 
-				{error && <p className="text-red-500 text-sm">{error}</p>}
+				{displayError && <p className="text-red-500 text-sm">{displayError}</p>}
 				{success && (
 					<p className="text-green-500 text-sm">✓ Post criado com sucesso!</p>
 				)}

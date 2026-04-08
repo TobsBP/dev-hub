@@ -1,21 +1,2 @@
-import type { DefaultSession } from 'next-auth';
-
-declare module 'next-auth' {
-	interface Session {
-		user: {
-			id: string;
-		} & DefaultSession['user'];
-		accessToken?: string;
-	}
-
-	interface User {
-		token?: string;
-	}
-}
-
-declare module 'next-auth/jwt' {
-	interface JWT {
-		id: string;
-		accessToken?: string;
-	}
-}
+// next-auth foi removido. Tipos de auth estão em src/contexts/auth-context.tsx
+export {};

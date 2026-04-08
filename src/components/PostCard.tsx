@@ -1,14 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import type { Comment } from '@/types/comment';
-import type { Like } from '@/types/like';
 import type { Post } from '@/types/post';
 import type { User, UserMap } from '@/types/user';
+import { useAuth } from '@/contexts/auth-context';
+import { useComments } from '@/hooks/useComments';
+import { useLikes } from '@/hooks/useLikes';
 import { TYPE_LABELS } from '@/utils/consts/post';
 import { formatDate } from '@/utils/formatDate';
 import { initials } from '@/utils/initials';
@@ -16,163 +16,28 @@ import { initials } from '@/utils/initials';
 export default function PostCard({
 	post,
 	user,
-	initialCommentCount = 0,
-	initialBookmarked = false,
 	users = {},
 }: {
 	post: Post;
 	user?: User;
-	initialCommentCount?: number;
-	initialBookmarked?: boolean;
 	users?: UserMap;
 }) {
-	const { data: session } = useSession();
-	const [liked, setLiked] = useState(false);
-	const [likesCount, setLikesCount] = useState(0);
-	const [bookmarked, setBookmarked] = useState(initialBookmarked);
+	const { user: currentUser } = useAuth();
+	const { count: likesCount, isLiked, toggle: toggleLike } = useLikes('post', post.id);
+	const { comments, loading: loadingComments, createComment } = useComments(post.id);
 	const [showComments, setShowComments] = useState(false);
-	const [comments, setComments] = useState<Comment[]>([]);
-	const [commentCount, setCommentCount] = useState(initialCommentCount);
 	const [commentText, setCommentText] = useState('');
-	const [loadingComments, setLoadingComments] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
-
-	// --- BUSCAR ESTADO INICIAL DE BOOKMARK ---
-	useEffect(() => {
-		const userId = session?.user?.id;
-		if (!userId || initialBookmarked) return;
-
-		fetch(`/api/bookmarks?user_id=${userId}`)
-			.then((r) => (r.ok ? r.json() : []))
-			.then((data: Array<{ post_id: string }>) => {
-				if (Array.isArray(data)) {
-					setBookmarked(data.some((b) => b.post_id === post.id));
-				}
-			})
-			.catch(() => {});
-	}, [post.id, session, initialBookmarked]);
-
-	// --- BUSCAR ESTADO INICIAL DE LIKES ---
-	useEffect(() => {
-		const fetchLikes = async () => {
-			const userId = session?.user?.id;
-			try {
-				const res = await fetch(`/api/likes?type=post&id=${post.id}`);
-				if (res.ok) {
-					const data = await res.json();
-					if (Array.isArray(data)) {
-						setLikesCount(data.length);
-						if (userId) {
-							const hasLiked = data.some(
-								(like: Like) => like.user_id === userId,
-							);
-							setLiked(hasLiked);
-						}
-					}
-				}
-			} catch (err) {
-				console.error('Erro ao carregar likes:', err);
-			}
-		};
-
-		fetchLikes();
-	}, [post.id, session]);
-
-	// --- BUSCAR COMENTÁRIOS ---
-	useEffect(() => {
-		if (!showComments) return;
-		setLoadingComments(true);
-		fetch(`/api/comments/${post.id}`)
-			.then((r) => r.json())
-			.then((data) => setComments(Array.isArray(data) ? data : []))
-			.finally(() => setLoadingComments(false));
-	}, [showComments, post.id]);
-
-	// --- LOGICA DE CURTIR/DESCURTIR ---
-	const toggleLike = async () => {
-		const userId = session?.user?.id;
-		if (!userId) {
-			alert('Você precisa estar logado para curtir!');
-			return;
-		}
-
-		// Optimistic UI: Muda na tela antes de ir pro banco
-		const previousLiked = liked;
-		const previousCount = likesCount;
-
-		setLiked(!previousLiked);
-		setLikesCount((prev) => (previousLiked ? prev - 1 : prev + 1));
-
-		try {
-			const res = await fetch('/api/likes/toggle', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					userId: userId,
-					targetId: post.id,
-					targetType: 'post',
-					isLiked: previousLiked,
-				}),
-			});
-
-			if (!res.ok) throw new Error('Erro na API');
-		} catch (error) {
-			// Reverte se der erro
-			setLiked(previousLiked);
-			setLikesCount(previousCount);
-			console.error('Erro ao curtir:', error);
-		}
-	};
-
-	// --- LÓGICA DE BOOKMARK ---
-	const toggleBookmark = async () => {
-		const userId = session?.user?.id;
-		if (!userId) {
-			alert('Você precisa estar logado para salvar posts!');
-			return;
-		}
-
-		const previousBookmarked = bookmarked;
-		setBookmarked(!previousBookmarked);
-
-		try {
-			if (previousBookmarked) {
-				const res = await fetch(`/api/bookmarks/${post.id}?user_id=${userId}`, {
-					method: 'DELETE',
-				});
-				if (!res.ok) throw new Error('Erro ao remover bookmark');
-			} else {
-				const res = await fetch('/api/bookmarks', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ user_id: userId, post_id: post.id }),
-				});
-				if (!res.ok) throw new Error('Erro ao adicionar bookmark');
-			}
-		} catch (error) {
-			setBookmarked(previousBookmarked);
-			console.error('Erro ao salvar bookmark:', error);
-		}
-	};
 
 	const submitComment = async () => {
 		if (commentText.trim().length < 2 || submitting) return;
 		setSubmitting(true);
-		const res = await fetch(`/api/comments/${post.id}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				user_id: session?.user?.id,
-				content: commentText.trim(),
-			}),
-		});
-		if (res.ok) {
-			const newComment = await res.json();
-			setComments((prev) => [...prev, newComment]);
-			setCommentCount((c) => c + 1);
+		try {
+			await createComment(commentText.trim());
 			setCommentText('');
+		} finally {
+			setSubmitting(false);
 		}
-		setSubmitting(false);
 	};
 
 	return (
@@ -210,11 +75,7 @@ export default function PostCard({
 						<SyntaxHighlighter
 							language="auto"
 							style={atomOneDark}
-							customStyle={{
-								margin: 0,
-								borderRadius: 0,
-								background: '#18181b',
-							}}
+							customStyle={{ margin: 0, borderRadius: 0, background: '#18181b' }}
 							showLineNumbers
 							wrapLongLines
 						>
@@ -235,24 +96,16 @@ export default function PostCard({
 							</div>
 						)}
 						{post.content && (
-							<p className="text-zinc-400 text-sm leading-relaxed">
-								{post.content}
-							</p>
+							<p className="text-zinc-400 text-sm leading-relaxed">{post.content}</p>
 						)}
 					</div>
 				) : post.type === 'question' ? (
 					<div className="flex gap-3 p-3 bg-amber-950/30 border border-amber-900/50 rounded-lg">
-						<span className="text-amber-400 text-lg leading-none mt-0.5">
-							?
-						</span>
-						<p className="text-zinc-200 text-sm leading-relaxed">
-							{post.content}
-						</p>
+						<span className="text-amber-400 text-lg leading-none mt-0.5">?</span>
+						<p className="text-zinc-200 text-sm leading-relaxed">{post.content}</p>
 					</div>
 				) : (
-					<p className="text-zinc-200 text-sm leading-relaxed">
-						{post.content}
-					</p>
+					<p className="text-zinc-200 text-sm leading-relaxed">{post.content}</p>
 				)}
 			</div>
 
@@ -262,7 +115,7 @@ export default function PostCard({
 					type="button"
 					onClick={toggleLike}
 					className={`flex items-center gap-1.5 text-sm transition-colors ${
-						liked ? 'text-red-400' : 'text-zinc-500 hover:text-zinc-300'
+						isLiked ? 'text-red-400' : 'text-zinc-500 hover:text-zinc-300'
 					}`}
 				>
 					<svg
@@ -271,16 +124,16 @@ export default function PostCard({
 						viewBox="0 0 24 24"
 						stroke="currentColor"
 						strokeWidth="1.8"
-						fill={liked ? 'currentColor' : 'none'}
+						fill={isLiked ? 'currentColor' : 'none'}
 					>
-						<title>{liked ? 'Curtido' : 'Curtir'}</title>
+						<title>{isLiked ? 'Curtido' : 'Curtir'}</title>
 						<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
 					</svg>
 					<span>{likesCount}</span>
 				</button>
 
 				<button
-					type="submit"
+					type="button"
 					onClick={() => setShowComments((v) => !v)}
 					className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
 				>
@@ -292,36 +145,17 @@ export default function PostCard({
 						stroke="currentColor"
 						strokeWidth="1.8"
 					>
-						<title>{commentCount === 0 ? 'Comentar' : 'Comentários'}</title>
+						<title>Comentários</title>
 						<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
 					</svg>
 					<span>
-						{commentCount} {commentCount === 1 ? 'comentário' : 'comentários'}
+						{comments.length}{' '}
+						{comments.length === 1 ? 'comentário' : 'comentários'}
 					</span>
-				</button>
-
-				<button
-					type="button"
-					onClick={toggleBookmark}
-					className={`flex items-center gap-1.5 text-sm transition-colors ml-auto ${
-						bookmarked ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'
-					}`}
-				>
-					<svg
-						width="18"
-						height="18"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth="1.8"
-						fill={bookmarked ? 'currentColor' : 'none'}
-					>
-						<title>{bookmarked ? 'Salvo' : 'Salvar'}</title>
-						<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-					</svg>
 				</button>
 			</div>
 
-			{/* Comments Area... */}
+			{/* Comments Area */}
 			{showComments && (
 				<div className="border-t border-zinc-800 px-4 py-3 space-y-3 w-full overflow-hidden">
 					{loadingComments && (
@@ -331,34 +165,22 @@ export default function PostCard({
 						<p className="text-xs text-zinc-600">Nenhum comentário ainda.</p>
 					)}
 					{comments.map((c) => {
-						const isMe = c.user_id === session?.user?.id;
+						const isMe = c.user_id === currentUser?.id;
 						const commentUser = users[c.user_id];
 						const displayName = isMe
 							? 'Você'
 							: (commentUser?.username ?? commentUser?.email ?? 'Usuário');
 						const initial = isMe
-							? (
-									user?.username?.[0] ??
-									session?.user?.email?.[0] ??
-									'V'
-								).toUpperCase()
-							: (
-									commentUser?.username?.[0] ??
-									commentUser?.email?.[0] ??
-									'?'
-								).toUpperCase();
+							? (user?.username?.[0] ?? currentUser?.email?.[0] ?? 'V').toUpperCase()
+							: (commentUser?.username?.[0] ?? commentUser?.email?.[0] ?? '?').toUpperCase();
 						return (
 							<div key={c.id} className="flex gap-2 items-start">
 								<div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400 shrink-0">
 									{initial}
 								</div>
 								<div className="bg-zinc-900 rounded-lg px-3 py-2 flex-1 min-w-0">
-									<p className="text-xs font-medium text-zinc-400 mb-0.5">
-										{displayName}
-									</p>
-									<p className="text-sm text-zinc-300 leading-snug">
-										{c.content}
-									</p>
+									<p className="text-xs font-medium text-zinc-400 mb-0.5">{displayName}</p>
+									<p className="text-sm text-zinc-300 leading-snug">{c.content}</p>
 								</div>
 							</div>
 						);

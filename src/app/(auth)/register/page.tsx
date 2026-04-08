@@ -3,11 +3,11 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { useRegister } from '@/hooks/useAuth';
 
 export default function RegisterPage() {
 	const router = useRouter();
-	const [error, setError] = useState('');
-	const [loading, setLoading] = useState(false);
+	const { register, loading, error } = useRegister();
 	const [avatar, setAvatar] = useState<File | null>(null);
 	const [preview, setPreview] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,38 +20,19 @@ export default function RegisterPage() {
 
 	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
-		setLoading(true);
-		setError('');
-
 		const form = e.currentTarget;
-		const formData = new FormData();
-		formData.append(
-			'username',
-			(form.elements.namedItem('username') as HTMLInputElement).value,
-		);
-		formData.append(
-			'email',
-			(form.elements.namedItem('email') as HTMLInputElement).value,
-		);
-		formData.append(
-			'password',
-			(form.elements.namedItem('password') as HTMLInputElement).value,
-		);
-		if (avatar) formData.append('avatar', avatar);
 
-		const response = await fetch('/api/register', {
-			method: 'POST',
-			body: formData,
-		});
-
-		setLoading(false);
-
-		if (!response.ok) {
-			setError('Erro ao criar conta. Tente novamente.');
-			return;
+		try {
+			await register({
+				username: (form.elements.namedItem('username') as HTMLInputElement).value,
+				email: (form.elements.namedItem('email') as HTMLInputElement).value,
+				password: (form.elements.namedItem('password') as HTMLInputElement).value,
+				avatar: avatar ?? undefined,
+			});
+			router.push('/login');
+		} catch {
+			// error is already set in hook
 		}
-
-		router.push('/login');
 	}
 
 	return (

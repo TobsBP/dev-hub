@@ -3,18 +3,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function NavBar() {
 	const [mounted, setMounted] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
-	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-	const [initials, setInitials] = useState('?');
 	const [typedText, setTypedText] = useState('');
 	const [doneTyping, setDoneTyping] = useState(false);
-	const { data: session } = useSession();
+	const { user } = useAuth();
 
 	useEffect(() => {
 		setMounted(true);
@@ -37,19 +35,6 @@ export default function NavBar() {
 		return () => clearInterval(interval);
 	}, []);
 
-	useEffect(() => {
-		if (!session?.user?.id) return;
-		fetch(`/api/users/${session.user.id}`)
-			.then((r) => (r.ok ? r.json() : null))
-			.then((data) => {
-				if (!data) return;
-				setAvatarUrl(data.avatar_url ?? null);
-				setInitials(
-					(data.username?.[0] ?? session.user?.email?.[0] ?? '?').toUpperCase(),
-				);
-			})
-			.catch(() => {});
-	}, [session]);
 	const router = useRouter();
 
 	const handleSearch = (e: React.BaseSyntheticEvent) => {
@@ -58,6 +43,9 @@ export default function NavBar() {
 			router.push(`/pesquisar?q=${encodeURIComponent(searchQuery)}`);
 		}
 	};
+
+	const avatarUrl = user?.avatar_url ?? null;
+	const initial = (user?.username?.[0] ?? user?.email?.[0] ?? '?').toUpperCase();
 
 	return (
 		<nav className="bg-black shadow-md w-full z-20 top-0 left-0 border-b border-zinc-800">
@@ -108,7 +96,7 @@ export default function NavBar() {
 						</form>
 					</div>
 
-					{/* Ações (Perfil/Menu) */}
+					{/* Ações */}
 					<div className="flex items-center space-x-4">
 						<div className="hidden md:block">
 							<Link href="/perfil" className="block">
@@ -122,7 +110,7 @@ export default function NavBar() {
 											className="w-full h-full object-cover"
 										/>
 									) : mounted ? (
-										initials
+										initial
 									) : (
 										'?'
 									)}
@@ -193,7 +181,7 @@ export default function NavBar() {
 									className="w-full h-full object-cover"
 								/>
 							) : (
-								initials
+								initial
 							)}
 						</div>
 						<span className="text-white font-semibold">Perfil</span>

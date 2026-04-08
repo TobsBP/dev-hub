@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
 	const router = useRouter();
+	const { login } = useAuth();
 	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
 
@@ -16,23 +17,16 @@ export default function LoginPage() {
 
 		const form = e.currentTarget;
 		const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-		const password = (form.elements.namedItem('password') as HTMLInputElement)
-			.value;
+		const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
-		const result = await signIn('credentials', {
-			email,
-			password,
-			redirect: false,
-		});
-
-		setLoading(false);
-
-		if (result?.error) {
+		try {
+			await login(email, password);
+			router.push('/');
+		} catch {
 			setError('Email ou senha inválidos.');
-			return;
+		} finally {
+			setLoading(false);
 		}
-
-		router.push('/');
 	}
 
 	return (
