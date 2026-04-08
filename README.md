@@ -45,12 +45,6 @@ O **DevHub** é o frontend de uma plataforma social voltada a desenvolvedores. A
  git clone https://github.com/seu-usuario/dev-hub.git
 ```
 
-**2. Acesse a pasta do projeto**
-
-```bash
-cd dev-hub
-```
-
 **3. Instale as dependências**
 
 ```bash

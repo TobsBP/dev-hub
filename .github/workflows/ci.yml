@@ -9,38 +9,34 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: dev-hub
-
     env:
       NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
       API_BASE_URL: ${{ secrets.API_BASE_URL }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
 
     steps:
-      - name: Checkout do código
+      - name: Checkout do codigo
         uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
-          cache-dependency-path: dev-hub/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm ci
 
-      - name: Build da aplicação
+      - name: Build da aplicacao
         run: npm run build
 
-      - name: Rodar aplicação
-        run: npm start &
+      - name: Rodar aplicacao
+        run: npm start > /tmp/server.log 2>&1 &
 
       - name: Esperar servidor subir
-        run: npx wait-on http://localhost:3000
+        run: sleep 5 && npx wait-on http-get://127.0.0.1:3000 --timeout 60000 --interval 2000 || (cat /tmp/server.log && exit 1)
 
       - name: Rodar testes Cypress
         run: npx cypress run
