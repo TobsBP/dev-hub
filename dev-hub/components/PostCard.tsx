@@ -1,7 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import type { Comment } from '@/types/comment';
 import type { Like } from '@/types/like';
 import type { Post } from '@/types/post';
@@ -14,22 +17,40 @@ export default function PostCard({
 	post,
 	user,
 	initialCommentCount = 0,
+	initialBookmarked = false,
 	users = {},
 }: {
 	post: Post;
 	user?: User;
 	initialCommentCount?: number;
+	initialBookmarked?: boolean;
 	users?: UserMap;
 }) {
 	const { data: session } = useSession();
 	const [liked, setLiked] = useState(false);
 	const [likesCount, setLikesCount] = useState(0);
+	const [bookmarked, setBookmarked] = useState(initialBookmarked);
 	const [showComments, setShowComments] = useState(false);
 	const [comments, setComments] = useState<Comment[]>([]);
 	const [commentCount, setCommentCount] = useState(initialCommentCount);
 	const [commentText, setCommentText] = useState('');
 	const [loadingComments, setLoadingComments] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
+
+	// --- BUSCAR ESTADO INICIAL DE BOOKMARK ---
+	useEffect(() => {
+		const userId = session?.user?.id;
+		if (!userId || initialBookmarked) return;
+
+		fetch(`/api/bookmarks?user_id=${userId}`)
+			.then((r) => (r.ok ? r.json() : []))
+			.then((data: Array<{ post_id: string }>) => {
+				if (Array.isArray(data)) {
+					setBookmarked(data.some((b) => b.post_id === post.id));
+				}
+			})
+			.catch(() => {});
+	}, [post.id, session, initialBookmarked]);
 
 	// --- BUSCAR ESTADO INICIAL DE LIKES ---
 	useEffect(() => {
@@ -103,6 +124,37 @@ export default function PostCard({
 		}
 	};
 
+	// --- LÓGICA DE BOOKMARK ---
+	const toggleBookmark = async () => {
+		const userId = session?.user?.id;
+		if (!userId) {
+			alert('Você precisa estar logado para salvar posts!');
+			return;
+		}
+
+		const previousBookmarked = bookmarked;
+		setBookmarked(!previousBookmarked);
+
+		try {
+			if (previousBookmarked) {
+				const res = await fetch(`/api/bookmarks/${post.id}?user_id=${userId}`, {
+					method: 'DELETE',
+				});
+				if (!res.ok) throw new Error('Erro ao remover bookmark');
+			} else {
+				const res = await fetch('/api/bookmarks', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ user_id: userId, post_id: post.id }),
+				});
+				if (!res.ok) throw new Error('Erro ao adicionar bookmark');
+			}
+		} catch (error) {
+			setBookmarked(previousBookmarked);
+			console.error('Erro ao salvar bookmark:', error);
+		}
+	};
+
 	const submitComment = async () => {
 		if (commentText.trim().length < 2 || submitting) return;
 		setSubmitting(true);
@@ -127,8 +179,18 @@ export default function PostCard({
 		<article className="w-full bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden mb-4">
 			{/* Header */}
 			<div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
-				<div className="w-9 h-9 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 text-sm font-medium shrink-0">
-					{initials(user)}
+				<div className="w-9 h-9 rounded-full bg-blue-900 flex items-center justify-center text-blue-300 text-sm font-medium shrink-0 overflow-hidden">
+					{user?.avatar_url ? (
+						<Image
+							src={user.avatar_url}
+							alt={user.username ?? 'avatar'}
+							width={36}
+							height={36}
+							className="w-full h-full object-cover"
+						/>
+					) : (
+						initials(user)
+					)}
 				</div>
 				<div className="flex-1 min-w-0">
 					<p className="text-sm font-medium text-white truncate">
@@ -144,9 +206,49 @@ export default function PostCard({
 			{/* Content */}
 			<div className="px-4 py-4">
 				{post.type === 'code' ? (
-					<pre className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-sm text-zinc-300 overflow-x-auto whitespace-pre-wrap">
-						<code>{post.content}</code>
-					</pre>
+					<div className="rounded-lg overflow-hidden border border-zinc-800 text-sm">
+						<SyntaxHighlighter
+							language="auto"
+							style={atomOneDark}
+							customStyle={{
+								margin: 0,
+								borderRadius: 0,
+								background: '#18181b',
+							}}
+							showLineNumbers
+							wrapLongLines
+						>
+							{post.content}
+						</SyntaxHighlighter>
+					</div>
+				) : post.type === 'image' ? (
+					<div className="space-y-2">
+						{post.image_url && (
+							<div className="relative w-full overflow-hidden rounded-lg border border-zinc-800">
+								<Image
+									src={post.image_url}
+									alt={post.content || 'Imagem do post'}
+									width={800}
+									height={600}
+									className="w-full h-auto object-cover"
+								/>
+							</div>
+						)}
+						{post.content && (
+							<p className="text-zinc-400 text-sm leading-relaxed">
+								{post.content}
+							</p>
+						)}
+					</div>
+				) : post.type === 'question' ? (
+					<div className="flex gap-3 p-3 bg-amber-950/30 border border-amber-900/50 rounded-lg">
+						<span className="text-amber-400 text-lg leading-none mt-0.5">
+							?
+						</span>
+						<p className="text-zinc-200 text-sm leading-relaxed">
+							{post.content}
+						</p>
+					</div>
 				) : (
 					<p className="text-zinc-200 text-sm leading-relaxed">
 						{post.content}
@@ -196,6 +298,26 @@ export default function PostCard({
 					<span>
 						{commentCount} {commentCount === 1 ? 'comentário' : 'comentários'}
 					</span>
+				</button>
+
+				<button
+					type="button"
+					onClick={toggleBookmark}
+					className={`flex items-center gap-1.5 text-sm transition-colors ml-auto ${
+						bookmarked ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'
+					}`}
+				>
+					<svg
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						strokeWidth="1.8"
+						fill={bookmarked ? 'currentColor' : 'none'}
+					>
+						<title>{bookmarked ? 'Salvo' : 'Salvar'}</title>
+						<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+					</svg>
 				</button>
 			</div>
 
