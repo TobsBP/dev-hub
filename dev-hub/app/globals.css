@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Mantemos apenas as variáveis de fonte para o Tailwind reconhecer */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+	/* Mantemos apenas as variáveis de fonte para o Tailwind reconhecer */
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
 }
 
 /* Camada base para aplicar as fontes e suavizar a renderização */
 @layer base {
-  body {
-    @apply font-sans antialiased;
-  }
+	body {
+		@apply font-sans antialiased;
+	}
 }
