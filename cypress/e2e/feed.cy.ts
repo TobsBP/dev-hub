@@ -1,5 +1,3 @@
-// cypress/e2e/feed.cy.ts
-
 const LOGIN_EMAIL = 'teste1@email.com';
 const LOGIN_PASSWORD = '123';
 
@@ -33,13 +31,13 @@ describe('Feed Page', () => {
   });
 
   describe('Renderização básica', () => {
-    it('deve exibir o título "Feed"', () => {
+    it('F-001deve exibir o título "Feed"', () => {
       mockPosts([]);
       visitFeed();
       cy.contains('h1', 'Feed').should('be.visible');
     });
 
-    it('deve exibir o formulário de criação de post', () => {
+    it('F-002 deve exibir o formulário de criação de post', () => {
       mockPosts([]);
       visitFeed();
       cy.get('form, [data-testid="create-post-form"]').should('exist');
@@ -47,13 +45,13 @@ describe('Feed Page', () => {
   });
 
   describe('Estado de carregamento (loading)', () => {
-    it('deve exibir skeletons enquanto os posts carregam', () => {
+    it('F-003 deve exibir skeletons enquanto os posts carregam', () => {
       mockPostsLoading();
       visitFeed();
       cy.get('.animate-pulse').should('have.length.at.least', 1);
     });
 
-    it('não deve exibir mensagem de vazio durante o carregamento', () => {
+    it('F-004 não deve exibir mensagem de vazio durante o carregamento', () => {
       mockPostsLoading();
       visitFeed();
       cy.contains('Nenhum post ainda').should('not.exist');
@@ -61,14 +59,14 @@ describe('Feed Page', () => {
   });
 
   describe('Estado de erro', () => {
-    it('deve exibir mensagem de erro quando a API falha', () => {
+    it('F-005 deve exibir mensagem de erro quando a API falha', () => {
       mockPostsError();
       visitFeed();
       cy.wait('@getPostsError');
       cy.get('[class*="red"]').should('be.visible');
     });
 
-    it('deve exibir o botão "tentar novamente"', () => {
+    it('F-006 deve exibir o botão "tentar novamente"', () => {
       mockPostsError();
       visitFeed();
       cy.wait('@getPostsError');

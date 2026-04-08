@@ -10,7 +10,7 @@ describe('Página de Perfil', () => {
 		cy.visit('/perfil');
 	});
 
-	it('deve exibir o avatar com a inicial do nome ou email do usuário', () => {
+	it('Lg-001 deve exibir o avatar com a inicial do nome ou email do usuário', () => {
 		cy.get('div.w-20.h-20.rounded-full', { timeout: 10000 })
 			.should('be.visible')
 			.invoke('text')
@@ -21,7 +21,7 @@ describe('Página de Perfil', () => {
 			});
 	});
 
-	it('deve exibir o nome do usuário ou "—" como fallback', () => {
+	it('Lg-002 deve exibir o nome do usuário ou "—" como fallback', () => {
 		cy.contains('p.font-semibold', /.+/)
 			.should('be.visible')
 			.invoke('text')
@@ -31,7 +31,7 @@ describe('Página de Perfil', () => {
 			});
 	});
 
-	it('deve exibir o email do usuário ou "—" como fallback', () => {
+	it('Lg-003 deve exibir o email do usuário ou "—" como fallback', () => {
 		cy.get('p.text-zinc-400')
 			.should('be.visible')
 			.invoke('text')
@@ -41,7 +41,7 @@ describe('Página de Perfil', () => {
 			});
 	});
 
-	it('deve exibir o botão de sair', () => {
+	it('Lg-004 deve exibir o botão de sair', () => {
 		cy.contains('button', 'Sair')
 			.should('be.visible')
 			.and('have.class', 'bg-red-600');

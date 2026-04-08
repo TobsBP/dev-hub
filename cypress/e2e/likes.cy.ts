@@ -13,7 +13,7 @@ describe('Fluxo de Curtidas (Likes)', () => {
 		cy.wait('@getLikes', { timeout: 10000 });
 	});
 
-	it('deve garantir que o post esteja curtido (Like)', () => {
+	it('L-001 deve garantir que o post esteja curtido (Like)', () => {
 		cy.get('article').first().find('button').first().then(($btn) => {
 			if ($btn.hasClass('text-red-400')) {
 				cy.wrap($btn).click();
@@ -28,7 +28,7 @@ describe('Fluxo de Curtidas (Likes)', () => {
 			.should('have.class', 'text-red-400', { timeout: 10000 });
 	});
 
-	it('deve garantir que o post esteja descurtido (Unlike)', () => {
+	it('L-002 deve garantir que o post esteja descurtido (Unlike)', () => {
 		cy.get('article').first().find('button').first().then(($btn) => {
 			if (!$btn.hasClass('text-red-400')) {
 				cy.wrap($btn).click();
@@ -43,7 +43,7 @@ describe('Fluxo de Curtidas (Likes)', () => {
 			.should('not.have.class', 'text-red-400', { timeout: 10000 });
 	});
 
-	it('deve persistir o estado após atualizar a página', () => {
+	it('L-003 deve persistir o estado após atualizar a página', () => {
 		cy.get('article').first().find('button').first().then(($btn) => {
 			if (!$btn.hasClass('text-red-400')) {
 				cy.wrap($btn).click();
