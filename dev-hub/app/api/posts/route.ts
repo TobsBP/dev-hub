@@ -32,11 +32,10 @@ export async function POST(request: Request) {
 		);
 	}
 
-	const body = await request.json();
+	const formData = await request.formData();
 	const response = await fetch(`${API_BASE_URL}/post`, {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(body),
+		body: formData,
 	});
 
 	if (!response.ok) {
@@ -49,5 +48,5 @@ export async function POST(request: Request) {
 	}
 
 	const data = await response.json();
-	return NextResponse.json(data, { status: 201 }); // POST bem-sucedido → 201
+	return NextResponse.json(data, { status: 201 });
 }

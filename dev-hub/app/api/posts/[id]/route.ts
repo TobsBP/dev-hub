@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/utils/consts/api';
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+type Params = Promise<{ id: string }>;
+
+export async function GET(_: Request, { params }: { params: Params }) {
 	if (!API_BASE_URL) {
 		return NextResponse.json(
 			{ error: 'API_BASE_URL não definida' },
@@ -9,7 +11,8 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 		);
 	}
 
-	const response = await fetch(`${API_BASE_URL}/post/${params.id}`);
+	const { id } = await params;
+	const response = await fetch(`${API_BASE_URL}/post/${id}`);
 
 	if (!response.ok) {
 		const text = await response.text();
@@ -24,10 +27,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 	return NextResponse.json(data, { status: 200 });
 }
 
-export async function PATCH(
-	request: Request,
-	{ params }: { params: { id: string } },
-) {
+export async function PATCH(request: Request, { params }: { params: Params }) {
 	if (!API_BASE_URL) {
 		return NextResponse.json(
 			{ error: 'API_BASE_URL não definida' },
@@ -35,8 +35,9 @@ export async function PATCH(
 		);
 	}
 
+	const { id } = await params;
 	const body = await request.json();
-	const response = await fetch(`${API_BASE_URL}/post/${params.id}`, {
+	const response = await fetch(`${API_BASE_URL}/post/${id}`, {
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(body),
@@ -55,10 +56,7 @@ export async function PATCH(
 	return NextResponse.json(data, { status: 200 });
 }
 
-export async function DELETE(
-	_: Request,
-	{ params }: { params: { id: string } },
-) {
+export async function DELETE(_: Request, { params }: { params: Params }) {
 	if (!API_BASE_URL) {
 		return NextResponse.json(
 			{ error: 'API_BASE_URL não definida' },
@@ -66,7 +64,8 @@ export async function DELETE(
 		);
 	}
 
-	const response = await fetch(`${API_BASE_URL}/post/${params.id}`, {
+	const { id } = await params;
+	const response = await fetch(`${API_BASE_URL}/post/${id}`, {
 		method: 'DELETE',
 	});
 
@@ -79,5 +78,5 @@ export async function DELETE(
 		);
 	}
 
-	return new NextResponse(null, { status: 200 }); // DELETE sem body
+	return new NextResponse(null, { status: 200 });
 }

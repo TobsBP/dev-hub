@@ -2,12 +2,7 @@ import { NextResponse } from 'next/server';
 import { API_BASE_URL } from '@/utils/consts/api';
 
 export async function POST(request: Request) {
-	const body = await request.json();
-
-	const formData = new FormData();
-	for (const [key, value] of Object.entries(body)) {
-		formData.append(key, value as string);
-	}
+	const formData = await request.formData();
 
 	const response = await fetch(`${API_BASE_URL}/user`, {
 		method: 'POST',
