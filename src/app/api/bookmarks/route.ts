@@ -1,5 +1,5 @@
-import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
 
