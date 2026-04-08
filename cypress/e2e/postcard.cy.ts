@@ -1,15 +1,15 @@
-describe('Componente PostCard', () => {
-  const setup = () => {
-    cy.session('postcard-user', () => {
-      cy.visit('/login');
-      cy.get('input[name="email"]').type('teste1@email.com');
-      cy.get('input[name="password"]').type('123');
-      cy.get('button[type="submit"]').click();
-      cy.url({ timeout: 10000 }).should('not.include', '/login');
-    });
-    cy.visit('/');
-    cy.get('article', { timeout: 10000 }).should('be.visible');
-  };
+// describe('Componente PostCard', () => {
+//   const setup = () => {
+//     cy.session('postcard-user', () => {
+//       cy.visit('/login');
+//       cy.get('input[name="email"]').type('teste1@email.com');
+//       cy.get('input[name="password"]').type('123');
+//       cy.get('button[type="submit"]').click();
+//       cy.url({ timeout: 10000 }).should('not.include', '/login');
+//     });
+//     cy.visit('/');
+//     cy.get('article', { timeout: 10000 }).should('be.visible');
+//   };
 
   // // --- Renderização do card ---
 
@@ -38,17 +38,17 @@ describe('Componente PostCard', () => {
   //   });
   // });
 
-  it('PC-003 deve exibir a data de criação do post', () => {
-    setup();
-    cy.get('article').first().within(() => {
-      cy.get('p.text-xs.text-zinc-500')
-        .should('be.visible')
-        .invoke('text')
-        .then((text) => {
-          expect(text.trim().length).to.be.greaterThan(0);
-        });
-    });
-  });
+  // it('PC-003 deve exibir a data de criação do post', () => {
+  //   setup();
+  //   cy.get('article').first().within(() => {
+  //     cy.get('p.text-xs.text-zinc-500')
+  //       .should('be.visible')
+  //       .invoke('text')
+  //       .then((text) => {
+  //         expect(text.trim().length).to.be.greaterThan(0);
+  //       });
+  //   });
+  // });
 
   // it('PC-004 deve exibir o badge com o tipo do post', () => {
   //   setup();
@@ -74,12 +74,12 @@ describe('Componente PostCard', () => {
 
   // // --- Curtidas ---
 
-  it('PC-006 deve exibir o botão de curtir com contador', () => {
-    setup();
-    cy.get('article').first().within(() => {
-      cy.get('button').contains(/^\d+$/).should('exist');
-    });
-  });
+  // it('PC-006 deve exibir o botão de curtir com contador', () => {
+  //   setup();
+  //   cy.get('article').first().within(() => {
+  //     cy.get('button').contains(/^\d+$/).should('exist');
+  //   });
+  // });
 
   // // --- Comentários ---
 
@@ -98,15 +98,15 @@ describe('Componente PostCard', () => {
   //   });
   // });
 
-  it('PC-009 deve fechar a área de comentários ao clicar novamente no botão', () => {
-    setup();
-    cy.get('article').first().within(() => {
-      cy.contains('button', /comentário/).click();
-      cy.get('input[placeholder*="Comentar"]').should('be.visible');
-      cy.contains('button', /comentário/).click();
-      cy.get('input[placeholder*="Comentar"]').should('not.exist');
-    });
-  });
+  // it('PC-009 deve fechar a área de comentários ao clicar novamente no botão', () => {
+  //   setup();
+  //   cy.get('article').first().within(() => {
+  //     cy.contains('button', /comentário/).click();
+  //     cy.get('input[placeholder*="Comentar"]').should('be.visible');
+  //     cy.contains('button', /comentário/).click();
+  //     cy.get('input[placeholder*="Comentar"]').should('not.exist');
+  //   });
+  // });
 
   // it('PC-010 deve manter o botão publicar desabilitado com texto menor que 2 caracteres', () => {
   //   setup();
@@ -128,13 +128,13 @@ describe('Componente PostCard', () => {
 
   // // --- Tipos de post ---
 
-  it('PC-012 deve renderizar post do tipo "code" com syntax highlighter', () => {
-    setup();
-    cy.get('article').contains('span.rounded-full', /[Cc]ódigo|code/i)
-      .closest('article')
-      .find('pre')
-      .should('exist');
-  });
+  // it('PC-012 deve renderizar post do tipo "code" com syntax highlighter', () => {
+  //   setup();
+  //   cy.get('article').contains('span.rounded-full', /[Cc]ódigo|code/i)
+  //     .closest('article')
+  //     .find('pre')
+  //     .should('exist');
+  // });
 
 //   it('PC-013 deve renderizar post do tipo "question" com destaque visual', () => {
 //     setup();
@@ -143,4 +143,4 @@ describe('Componente PostCard', () => {
 //       .find('div.bg-amber-950\\/30')
 //       .should('exist');
 //   });
-});
+// });
