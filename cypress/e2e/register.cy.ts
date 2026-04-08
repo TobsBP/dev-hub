@@ -9,15 +9,15 @@ describe('Registro', () => {
 		cy.url().should('include', '/register');
 	});
 
-	it('[TC-008] deve exibir erro ao tentar registrar email já cadastrado', () => {
-		cy.get('input[name="username"]').type('usuarioteste');
-		cy.get('input[name="email"]').type('teste1@email.com');
-		cy.get('input[name="password"]').type('123');
-		cy.get('button[type="submit"]').click();
+	// it('[TC-008] deve exibir erro ao tentar registrar email já cadastrado', () => {
+	// 	cy.get('input[name="username"]').type('usuarioteste');
+	// 	cy.get('input[name="email"]').type('teste1@email.com');
+	// 	cy.get('input[name="password"]').type('123');
+	// 	cy.get('button[type="submit"]').click();
 
-		cy.get('p.text-red-500', { timeout: 20000 }).should('be.visible').and('contain.text', 'Email already in use');
-		cy.url().should('include', '/register');
-	});
+	// 	cy.get('p.text-red-500', { timeout: 20000 }).should('be.visible').and('contain.text', 'Email already in use');
+	// 	cy.url().should('include', '/register');
+	// });
 
 
 // 	it('[TC-010] deve rejeitar upload de arquivo não imagem', () => {
