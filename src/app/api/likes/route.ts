@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
 
-async function bearerHeader() {
+async function bearerHeader(): Promise<Record<string, string>> {
 	const session = await getServerSession(authOptions);
 	return session?.accessToken
 		? { Authorization: `Bearer ${session.accessToken}` }
