@@ -4,7 +4,7 @@ import { API_BASE_URL } from '@/utils/consts/api';
 export async function POST(request: Request) {
 	const formData = await request.formData();
 
-	const response = await fetch(`${API_BASE_URL}/user`, {
+	const response = await fetch(`${API_BASE_URL}/auth/register`, {
 		method: 'POST',
 		body: formData,
 	});

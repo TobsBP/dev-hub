@@ -1,5 +1,14 @@
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
+
+async function bearerHeader() {
+	const session = await getServerSession(authOptions);
+	return session?.accessToken
+		? { Authorization: `Bearer ${session.accessToken}` }
+		: {};
+}
 
 export async function GET(request: Request) {
 	if (!API_BASE_URL) {
@@ -19,6 +28,7 @@ export async function GET(request: Request) {
 	try {
 		const response = await fetch(`${API_BASE_URL}/bookmarks/${userId}`, {
 			cache: 'no-store',
+			headers: await bearerHeader(),
 		});
 
 		if (!response.ok) {
@@ -42,10 +52,11 @@ export async function POST(request: Request) {
 
 	try {
 		const { user_id, post_id } = await request.json();
+		const auth = await bearerHeader();
 
 		const response = await fetch(`${API_BASE_URL}/bookmarks`, {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 'Content-Type': 'application/json', ...auth },
 			body: JSON.stringify({ user_id, post_id }),
 		});
 

@@ -1,10 +1,19 @@
+import { getServerSession } from 'next-auth';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
+
+async function bearerHeader() {
+	const session = await getServerSession(authOptions);
+	return session?.accessToken
+		? { Authorization: `Bearer ${session.accessToken}` }
+		: {};
+}
 
 export async function DELETE(
 	req: NextRequest,
-	ctx: RouteContext<'/api/bookmarks/[postId]'>,
+	{ params }: { params: Promise<{ postId: string }> },
 ) {
 	if (!API_BASE_URL) {
 		return NextResponse.json(
@@ -13,7 +22,7 @@ export async function DELETE(
 		);
 	}
 
-	const { postId } = await ctx.params;
+	const { postId } = await params;
 	const { searchParams } = new URL(req.url);
 	const userId = searchParams.get('user_id');
 
@@ -24,7 +33,10 @@ export async function DELETE(
 	try {
 		const response = await fetch(
 			`${API_BASE_URL}/bookmark/${userId}/${postId}`,
-			{ method: 'DELETE' },
+			{
+				method: 'DELETE',
+				headers: await bearerHeader(),
+			},
 		);
 
 		if (!response.ok) {

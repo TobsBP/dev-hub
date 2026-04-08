@@ -1,5 +1,14 @@
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
+
+async function bearerHeader() {
+	const session = await getServerSession(authOptions);
+	return session?.accessToken
+		? { Authorization: `Bearer ${session.accessToken}` }
+		: {};
+}
 
 export async function GET(request: Request) {
 	if (!API_BASE_URL) {
@@ -10,8 +19,8 @@ export async function GET(request: Request) {
 	}
 
 	const { searchParams } = new URL(request.url);
-	const targetType = searchParams.get('type'); // 'post'
-	const targetId = searchParams.get('id'); // 'uuid-do-post'
+	const targetType = searchParams.get('type');
+	const targetId = searchParams.get('id');
 
 	if (!targetType || !targetId) {
 		return NextResponse.json({ error: 'Parâmetros ausentes' }, { status: 400 });
@@ -21,12 +30,12 @@ export async function GET(request: Request) {
 		const response = await fetch(
 			`${API_BASE_URL}/likes/${targetType}/${targetId}`,
 			{
-				cache: 'no-store', // Garante que pegue o dado mais atualizado
+				cache: 'no-store',
+				headers: await bearerHeader(),
 			},
 		);
 
 		if (!response.ok) {
-			// Se a API retornar erro (ex: 404 pq não tem likes ainda), retornamos lista vazia
 			return NextResponse.json([]);
 		}
 

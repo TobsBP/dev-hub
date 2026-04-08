@@ -1,5 +1,14 @@
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
+
+async function bearerHeader() {
+	const session = await getServerSession(authOptions);
+	return session?.accessToken
+		? { Authorization: `Bearer ${session.accessToken}` }
+		: {};
+}
 
 export async function GET() {
 	if (!API_BASE_URL) {
@@ -9,7 +18,9 @@ export async function GET() {
 		);
 	}
 
-	const response = await fetch(`${API_BASE_URL}/users`);
+	const response = await fetch(`${API_BASE_URL}/users`, {
+		headers: await bearerHeader(),
+	});
 
 	if (!response.ok) {
 		const text = await response.text();
@@ -32,10 +43,10 @@ export async function POST(request: Request) {
 		);
 	}
 
-	// Repassa o FormData direto — não converte para JSON
 	const formData = await request.formData();
 	const response = await fetch(`${API_BASE_URL}/user`, {
 		method: 'POST',
+		headers: await bearerHeader(),
 		body: formData,
 	});
 

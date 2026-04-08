@@ -1,7 +1,16 @@
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { authOptions } from '@/lib/auth';
 import { API_BASE_URL } from '@/utils/consts/api';
 
 type Params = Promise<{ id: string }>;
+
+async function bearerHeader() {
+	const session = await getServerSession(authOptions);
+	return session?.accessToken
+		? { Authorization: `Bearer ${session.accessToken}` }
+		: {};
+}
 
 export async function GET(_: Request, { params }: { params: Params }) {
 	if (!API_BASE_URL) {
@@ -12,7 +21,9 @@ export async function GET(_: Request, { params }: { params: Params }) {
 	}
 
 	const { id } = await params;
-	const response = await fetch(`${API_BASE_URL}/post/${id}`);
+	const response = await fetch(`${API_BASE_URL}/post/${id}`, {
+		headers: await bearerHeader(),
+	});
 
 	if (!response.ok) {
 		const text = await response.text();
@@ -39,7 +50,7 @@ export async function PATCH(request: Request, { params }: { params: Params }) {
 	const body = await request.json();
 	const response = await fetch(`${API_BASE_URL}/post/${id}`, {
 		method: 'PATCH',
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', ...(await bearerHeader()) },
 		body: JSON.stringify(body),
 	});
 
@@ -67,6 +78,7 @@ export async function DELETE(_: Request, { params }: { params: Params }) {
 	const { id } = await params;
 	const response = await fetch(`${API_BASE_URL}/post/${id}`, {
 		method: 'DELETE',
+		headers: await bearerHeader(),
 	});
 
 	if (!response.ok) {
