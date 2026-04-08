@@ -1,5 +1,15 @@
 /// <reference types="cypress" />
 
+export {};
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      login(email: string, password: string): void;
+    }
+  }
+}
+
 Cypress.Commands.add('login', (email: string, password: string) => {
   cy.visit('/login');
   cy.get('input[name="email"]', { timeout: 10000 }).should('be.visible').type(email);
@@ -7,11 +17,3 @@ Cypress.Commands.add('login', (email: string, password: string) => {
   cy.get('button[type="submit"]').click();
   cy.url({ timeout: 15000 }).should('not.include', '/login');
 });
-
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      login(email: string, password: string): Chainable<void>;
-    }
-  }
-}
