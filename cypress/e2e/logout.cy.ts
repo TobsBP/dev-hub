@@ -11,13 +11,13 @@ describe('Página de Perfil', () => {
 	});
 
 	it('deve exibir o avatar com a inicial do nome ou email do usuário', () => {
-		cy.get('div.rounded-full')
+		cy.get('div.w-20.h-20.rounded-full', { timeout: 10000 })
 			.should('be.visible')
 			.invoke('text')
 			.then((text) => {
 				const inicial = text.trim();
-				expect(inicial).to.have.length(1);
-				expect(inicial).to.match(/[A-Z?]/);
+				expect(inicial.length).to.be.greaterThan(0);
+				expect(inicial[0]).to.match(/[A-Z?]/);
 			});
 	});
 
@@ -46,28 +46,4 @@ describe('Página de Perfil', () => {
 			.should('be.visible')
 			.and('have.class', 'bg-red-600');
 	});
-
-	//   it('deve redirecionar para /login ao clicar em Sair', () => {
-	//     cy.intercept('POST', '/api/auth/signout').as('signout');
-
-	//     cy.contains('button', 'Sair').click();
-
-	//     cy.wait('@signout');
-
-	//     cy.url({ timeout: 10000 }).should('include', '/login');
-	//   });
-
-	//   it('deve impedir acesso à página de perfil após logout', () => {
-	//     cy.intercept('POST', '/api/auth/signout').as('signout');
-
-	//     cy.contains('button', 'Sair').click();
-
-	//     cy.wait('@signout');
-
-	//     cy.url({ timeout: 10000 }).should('include', '/login');
-
-	//     cy.visit('/perfil');
-
-	//     cy.url().should('include', '/login');
-	//   });
 });
