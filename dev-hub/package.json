@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "cypress run",
-    "test:report": "cypress run --spec cypress/e2e/post.cy.ts"
+    "test:report": "cypress run --spec cypress/e2e/post.cy.ts",
     "test:ci": "cypress run --headless"
   },
   "dependencies": {
