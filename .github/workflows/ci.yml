@@ -38,9 +38,9 @@ jobs:
 
       - name: Rodar aplicação
         run: npm start &
-
+        
       - name: Esperar servidor subir
-        run: npx wait-on http://localhost:3000
+        run: npx wait-on http://localhost:3000 --timeout 60000 --verbose
 
       - name: Rodar testes Cypress
         run: npx cypress run
